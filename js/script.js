@@ -20,6 +20,7 @@ const text = {
 
 let currentLang = "id";
 
+// ================= LANG =================
 document.getElementById('langSwitch').addEventListener('change', (e) => {
     currentLang = e.target.value;
     updateLang();
@@ -31,6 +32,7 @@ function updateLang() {
     document.getElementById('analyzeBtn').innerText = text[currentLang].analyze;
 }
 
+// ================= FILE READER =================
 document.getElementById('followersFile').addEventListener('change', e => {
     readFile(e.target.files[0], data => followersData = data);
 });
@@ -40,38 +42,63 @@ document.getElementById('followingFile').addEventListener('change', e => {
 });
 
 function readFile(file, callback) {
+    if (!file) return;
+
+    if (!file.name.endsWith('.json')) {
+        alert("File harus JSON bro 🗿");
+        return;
+    }
+
     const reader = new FileReader();
     reader.onload = e => {
-        callback(JSON.parse(e.target.result));
+        try {
+            const parsed = JSON.parse(e.target.result);
+            callback(parsed);
+        } catch (err) {
+            alert("JSON rusak atau format salah 😭");
+        }
     };
     reader.readAsText(file);
 }
 
+// ================= CORE LOGIC =================
 function analyze() {
     if (!followersData || !followingData) {
-        alert("Upload file dulu bro");
+        alert("Upload dua file dulu bro");
         return;
     }
 
     let followersSet = new Set();
 
+    // HANDLE MULTIPLE FORMAT FOLLOWERS
     const rawFollowers = Array.isArray(followersData)
         ? followersData
         : followersData.relationships_followers || [];
 
     rawFollowers.forEach(item => {
-        item.string_list_data?.forEach(entry => {
-            if (entry.value) followersSet.add(entry.value);
+        if (!item || !item.string_list_data) return;
+
+        item.string_list_data.forEach(entry => {
+            if (entry && typeof entry.value === "string") {
+                followersSet.add(entry.value.trim());
+            }
         });
     });
 
+    // HANDLE FOLLOWING
     const rawFollowing = followingData.relationships_following || [];
     let result = [];
 
     rawFollowing.forEach(item => {
-        item.string_list_data?.forEach(entry => {
-            if (entry.value && !followersSet.has(entry.value)) {
-                result.push(entry.value);
+        if (!item || !item.string_list_data) return;
+
+        item.string_list_data.forEach(entry => {
+            if (!entry || typeof entry.value !== "string") return;
+
+            const username = entry.value.trim();
+
+            if (!followersSet.has(username)) {
+                result.push(username);
             }
         });
     });
@@ -79,10 +106,11 @@ function analyze() {
     render(result);
 }
 
+// ================= RENDER =================
 function render(list) {
     const container = document.getElementById('result');
 
-    if (list.length === 0) {
+    if (!Array.isArray(list) || list.length === 0) {
         container.innerHTML = `<p>${text[currentLang].empty}</p>`;
         return;
     }
@@ -93,4 +121,4 @@ function render(list) {
             ${list.map(u => `<li>@${u}</li>`).join('')}
         </ul>
     `;
-      }
+}
