@@ -4,6 +4,11 @@ A simple web-based tool to find out which Instagram users you follow but do not 
 
 🔗 Live Demo: https://ysufimanuel.github.io/igfollowbackchecker/
 
+## 🔄 Updates Version 0.2
+
+- Improved JSON parsing to support multiple Instagram export formats
+- Fixed issue where usernames could appear as `undefined`
+- Added better validation for uploaded files
 ---
 
 ## ✨ Features
@@ -96,8 +101,6 @@ To use this tool, you need to download your Instagram data:
   ]
 }
 ```
-
----
 
 ## ⚠️ Notes
 
